@@ -95,7 +95,7 @@ test_y = tf.keras.utils.to_categorical(test_y)
 
 #create early stopping checkpoints based on minimum validation loss
 from keras.callbacks import ModelCheckpoint
-filepath="weights-improvement-{epoch:02d}-{val_loss:.2f}.hdf5"
+filepath="weights.best.hdf5"
 checkpoint = ModelCheckpoint(filepath,monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 

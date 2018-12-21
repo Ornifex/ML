@@ -17,9 +17,9 @@ num_classes = 10
 
 # expected input data shape: (batch_size, timesteps, data_dim)
 model = Sequential()
-model.add(GRU(96, input_shape=(timesteps, data_dim), dropout=0.4, recurrent_dropout=0.5))
-# model.add(GRU(128, input_shape=(timesteps, data_dim), dropout=0.4, recurrent_dropout=0.5, return_sequences=True))
-# model.add(GRU(48, dropout=0.3, recurrent_dropout=0.2, return_sequences=False))
+# model.add(GRU(96, input_shape=(timesteps, data_dim), dropout=0.4, recurrent_dropout=0.5))
+model.add(GRU(96, input_shape=(timesteps, data_dim), dropout=0.4, recurrent_dropout=0.5, return_sequences=True))
+model.add(GRU(48, dropout=0.3, recurrent_dropout=0.35, return_sequences=False))
 model.add(Dense(10, activation='softmax'))
 from keras import optimizers
 
@@ -50,7 +50,7 @@ import tensorflow as tf
 train_y = tf.keras.utils.to_categorical(train_y)
 test_y = tf.keras.utils.to_categorical(test_y)
 
-model.fit(train_x, train_y, batch_size=35, epochs=200,
+model.fit(train_x, train_y, batch_size=35, epochs=400,
           validation_data=(test_x, test_y), shuffle=True)
 print(model.summary())
 print(model.evaluate(test_x, test_y, batch_size=35))

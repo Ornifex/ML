@@ -38,33 +38,35 @@ scaler = StandardScaler(copy=False)
 scaler.fit_transform(train_x)
 scaler.transform(test_x)
 
-from sklearn.svm import SVC
-clf = SVC(kernel='rbf')
-clf.fit(train_x, train_y)
-print(clf.score(test_x, test_y))
-
-from sklearn.neural_network import MLPClassifier
-clf = MLPClassifier(max_iter=2000)
-clf.fit(train_x, train_y)
-print(clf.score(test_x, test_y))
+# from sklearn.svm import SVC
+# clf = SVC(kernel='rbf')
+# clf.fit(train_x, train_y)
+# print(clf.score(test_x, test_y))
+#
+# from sklearn.neural_network import MLPClassifier
+# clf = MLPClassifier(max_iter=2000)
+# clf.fit(train_x, train_y)
+# print(clf.score(test_x, test_y))
 
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Embedding
 import numpy as np
-from keras.layers import Dense, Dropout, Activation
+from keras.layers import Dense, Dropout, Activation, Bidirectional
+from keras_self_attention import SeqSelfAttention
+
 data_dim = 21
 timesteps = 20
 num_classes = 10
 
 # expected input data shape: (batch_size, timesteps, data_dim)
 model = Sequential()
-model.add(LSTM(128,
-               input_shape=(timesteps, data_dim),dropout=0.35, recurrent_dropout=0.55, ))  # returns a sequence of vectors of dimension 32
-#model.add(LSTM(16,
-#               dropout=0.15, recurrent_dropout=0.4,return_sequences=False))  # returns a sequence of vectors of dimension 32
+model.add(Bidirectional(LSTM(128,
+               input_shape=(timesteps, data_dim),dropout=0.35, recurrent_dropout=0.55, return_sequences=True)) ) # returns a sequence of vectors of dimension 32
+model.add(Bidirectional(LSTM(32,
+             dropout=0.35, recurrent_dropout=0.55,return_sequences=False)))  # returns a sequence of vectors of dimension 32
 #model.add(LSTM(32))  # return a single vector of dimension 32
+#model.add(SeqSelfAttention(attention_activation='sigmoid'))
 model.add(Dense(10, activation='softmax'))
-model.load_weights('weights-improvement-156-1.14.hdf5')
 from keras import optimizers
 
 model.compile(loss='categorical_crossentropy',
@@ -93,20 +95,23 @@ import tensorflow as tf
 train_y = tf.keras.utils.to_categorical(train_y)
 test_y = tf.keras.utils.to_categorical(test_y)
 
+
 #create early stopping checkpoints based on minimum validation loss
 from keras.callbacks import ModelCheckpoint
-filepath="weights.best.hdf5"
-checkpoint = ModelCheckpoint(filepath,monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+filepath="weights.best1.hdf5"
+checkpoint = ModelCheckpoint(filepath,monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
 model.fit(train_x, train_y,
-          batch_size=35, epochs=400,
-          validation_data=(test_x, test_y),shuffle=True,callbacks=callbacks_list)
+          batch_size=35, epochs=200,
+          validation_data=(test_x, test_y),
+          shuffle=True,callbacks=callbacks_list)
 print(model.summary())
 print(model.evaluate(test_x, test_y, batch_size=35))
 
 
 #test model using best weights
-#model.load_weights('weights-improvement-156-1.14.hdf5')
-#scores = model.evaluate(test_x,test_y,verbose=0)
-#print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+model.load_weights('weights.best1.hdf5')
+scores = model.evaluate(test_x,test_y,verbose=0)
+print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+

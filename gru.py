@@ -11,8 +11,8 @@ from keras.layers import Dense, Dropout, Activation
 train_x, test_x, train_y, test_y = utils.load_features("features.csv", scale=True)
 
 
-data_dim = 14
-timesteps = 14
+data_dim = 28
+timesteps = 7
 num_classes = 10
 
 # expected input data shape: (batch_size, timesteps, data_dim)
@@ -47,10 +47,16 @@ test_x = np.reshape(test_x, (test_x.shape[0], timesteps, data_dim))
 
 import tensorflow as tf
 
+from keras.callbacks import ModelCheckpoint
+filepath = "gru-weights.best1.hdf5"
+checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+callbacks_list = [checkpoint]
+
 train_y = tf.keras.utils.to_categorical(train_y)
 test_y = tf.keras.utils.to_categorical(test_y)
 
 model.fit(train_x, train_y, batch_size=35, epochs=400,
-          validation_data=(test_x, test_y), shuffle=True)
+          validation_data=(test_x, test_y), shuffle=True,
+          callbacks=callbacks_list)
 print(model.summary())
 print(model.evaluate(test_x, test_y, batch_size=35))

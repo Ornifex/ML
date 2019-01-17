@@ -1,8 +1,9 @@
 import pandas as pd
 import os
 import numpy as np
-
-features = pd.read_csv("features.csv", index_col=0, header=[0, 1, 2])
+import sys
+nr = sys.argv[1]
+features = pd.read_csv("fma/features.csv", index_col=0, header=[0, 1, 2])
 
 # get current working directory
 cwd = os.getcwd()
@@ -33,6 +34,8 @@ for idx in range(0,10):
 
 train_x = train.values
 test_x = test.values
+mlp_tr = train.values
+mlp_tst = test.values
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
 scaler = StandardScaler(copy=False)
 scaler.fit_transform(train_x)
@@ -43,16 +46,12 @@ scaler.transform(test_x)
 # clf.fit(train_x, train_y)
 # print(clf.score(test_x, test_y))
 #
-# from sklearn.neural_network import MLPClassifier
-# clf = MLPClassifier(max_iter=2000)
-# clf.fit(train_x, train_y)
-# print(clf.score(test_x, test_y))
 
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Embedding
 import numpy as np
 from keras.layers import Dense, Dropout, Activation, Bidirectional
-from keras_self_attention import SeqSelfAttention
+#from keras_self_attention import SeqSelfAttention
 
 data_dim = 21
 timesteps = 20
@@ -98,7 +97,7 @@ test_y = tf.keras.utils.to_categorical(test_y)
 
 #create early stopping checkpoints based on minimum validation loss
 from keras.callbacks import ModelCheckpoint
-filepath="weights.best1.hdf5"
+filepath="weights.best"+nr+".hdf5"
 checkpoint = ModelCheckpoint(filepath,monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
@@ -111,7 +110,11 @@ print(model.evaluate(test_x, test_y, batch_size=35))
 
 
 #test model using best weights
-model.load_weights('weights.best1.hdf5')
+model.load_weights('weights.best'+nr+'.hdf5')
 scores = model.evaluate(test_x,test_y,verbose=0)
 print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
 
+from sklearn.neural_network import MLPClassifier
+clf = MLPClassifier(max_iter=2000)
+clf.fit(mlp_tr, train_y)
+print(clf.score(mlp_tst, test_y))

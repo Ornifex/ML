@@ -17,6 +17,7 @@ import numpy as np
 from keras.layers import Dense, Dropout, Activation, Bidirectional
 import tensorflow as tf
 import pandas as pd
+import sys
 
 def data():
     """
@@ -102,7 +103,7 @@ def create_model(train_x, train_y, test_x, test_y):
 
     # expected input data shape: (batch_size, timesteps, data_dim)
     model = Sequential()
-    model.add(Bidirectional(LSTM({{choice([128, 256, 512])}},
+    model.add(Bidirectional(LSTM({{choice([64, 128, 256])}},
                 input_shape=(timesteps, data_dim),
                 dropout={{uniform(0, 1)}}, 
                 recurrent_dropout={{uniform(0, 1)}}, 
@@ -117,7 +118,7 @@ def create_model(train_x, train_y, test_x, test_y):
     from keras import optimizers
 
     model.compile(loss='categorical_crossentropy',
-                optimizer={{choice(['rmsprop', 'adam', 'sgd'])}},
+                optimizer=optimizers.Adam(lr={{uniform(0, 1)}}, decay={{uniform(0, 1)}}),
                 metrics=['accuracy'])
 
     result = model.fit(train_x, train_y,
@@ -132,10 +133,12 @@ def create_model(train_x, train_y, test_x, test_y):
     return {'loss': -validation_acc, 'status': STATUS_OK, 'model': model}
 
 if __name__ == '__main__':
+    nr = int(sys.argv[1])
+    print(nr)
     best_run, best_model = optim.minimize(model=create_model,
                                           data=data,
                                           algo=tpe.suggest,
-                                          max_evals=5,
+                                          max_evals=nr,
                                           trials=Trials())
     X_train, Y_train, X_test, Y_test = data()
     print("Evaluation of best performing model:")

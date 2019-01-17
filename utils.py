@@ -29,6 +29,14 @@ def load_features(filename, test_ratio=0.1, scale=False, scaler=StandardScaler(c
 
     train_x = train.values
     test_x = test.values
+    avg = np.mean(train_x, axis=0)
+    std = np.std(train_x, axis=0)
+
+    train_x -= avg
+    test_x -= avg
+    train_x /= std
+    test_x /= std
+
     if scale:
         scaler.fit_transform(train_x)
         scaler.transform(test_x)

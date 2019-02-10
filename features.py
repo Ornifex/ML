@@ -72,11 +72,12 @@ for dir in dirs:
     print("     Computing " + dir)
     for song in songs:
         fp = os.path.join(genre, song) #.au file
-        nfp = os.path.splitext(fp)[0] + ".wav" #.wav file
-        features = features.append(compute_features(nfp))
+        nfp = os.path.splitext(fp)[0] + ".au" #.wav file
+        try:
+            features = features.append(compute_features(nfp))
+        except:
+            print("Oops")
 
-        #convert .au to .wav
-        #subprocess.call(['ffmpeg', '-i', fp, '-vn', '-acodec',  'pcm_u8', '-ac' ,'1', '-ar' ,'44100', '-f', 'wav', nfp])
 
 print(" Saving to .csv...")
 features.to_csv('features.csv', float_format='%.{}e'.format(10))
